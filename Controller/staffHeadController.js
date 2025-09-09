@@ -55,6 +55,7 @@ exports.staffHeadLogin = async (req, res) => {
         email: user.email,
         role: user.role,
         photo: user.photo,
+        addedBy:user.addedBy
       },
     });
   } catch (err) {

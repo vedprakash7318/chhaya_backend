@@ -4,7 +4,7 @@ const generatePassword = require('../utils/generatePassword');
 // Add SMM
 exports.addSMM = async (req, res) => {
   try {
-    const { name, email, mobile, password } = req.body;
+    const { name, email, mobile, password,addedBy } = req.body;
 
     if (!name || !email || !mobile) {
       return res.status(400).json({ message: 'Name, email, and mobile are required' });
@@ -20,7 +20,7 @@ exports.addSMM = async (req, res) => {
       email,
       mobile,
       password: smmPassword,
-      addedBy: req.body.addedBy || null, // optional addedBy if no auth middleware
+      addedBy:addedBy
     });
 
     await newSMM.save();

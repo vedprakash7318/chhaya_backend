@@ -2,9 +2,9 @@
 const mongoose = require("mongoose");
 
 const CountrySchema = new mongoose.Schema({
-  countryName: { type: String, required: true, trim: true, unique: true },
-  addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // optional
-  createdAt: { type: Date, default: Date.now }
+  countryName: { type: String, required: true},
+  createdAt: { type: Date, default: Date.now },
+  countryAddedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
 });
 
 module.exports = mongoose.model("Country", CountrySchema);

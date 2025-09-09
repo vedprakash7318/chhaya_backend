@@ -1,18 +1,91 @@
 const Registration = require('../Models/ClientForm');
+const contact = require('../Models/ContactsModel');
+
+// exports.addRegistration = async (req, res) => {
+//   try {
+//     const {
+//       fullName, fatherName, address, state, pinCode, contactNumber,
+//       whatsappNumber, familyContact, email, passportNumber, dob,
+//       passportIssue, passportExpiry, nationality, ecr, ecnr,
+//       occupation, placeOfEmployment, lastExperience, lastSalary, InterviewStatus, ServiceCharge, MedicalCharge,
+//       expectedSalary, medicalReport, pccStatus, agentCode,
+//       country, job, salary, filledBy, leadId,
+//     } = req.body;
+  
+//     const existingReg = await Registration.findOne({ leadId });
+//     if (existingReg) {
+//       return res.status(400).json({ message: 'Form already submitted for this lead.' });
+//     }
+
+//     const photoUrl = req.files?.clientPhoto?.[0]?.path || '';
+//     const signUrl = req.files?.clientSign?.[0]?.path || '';
+
+//     const newReg = new Registration({
+//       fullName,
+//       fatherName,
+//       address,
+//       state,
+//       pinCode,
+//       contactNo: contactNumber,
+//       whatsAppNo: whatsappNumber,
+//       familyContact,
+//       email,
+//       passportNumber,
+//       passportIssue,
+//       dateOfBirth: dob,
+//       passportExpiry,
+//       nationality,
+//       ecr,
+//       ecnr,
+//       occupation,
+//       placeOfEmployment,
+//       lastExperience,
+//       lastSalaryPostDetails: lastSalary,
+//       expectedSalary,
+//       medicalReport,
+//       InterviewStatus,
+//       pccStatus,
+//       agentCode,
+//       Sign: signUrl,
+//       photo: photoUrl,
+//       ServiceChargeByTeam:ServiceCharge,
+//       officeConfirmation: {
+//         // country,
+//         // work:job,
+//         salary:expectedSalary,
+//         ServiceCharge,
+//         MedicalCharge
+//       },
+//       filledBy,
+//       leadId
+//     });
+
+//       const updatedLead = await contact.findByIdAndUpdate(
+//           leadId,
+//           { isFormFilled:true },
+//           { new: true }
+//         );
+
+//     await newReg.save();
+//     res.status(201).json({ message: 'Registration created successfully', regNo: newReg.regNo });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
 
 exports.addRegistration = async (req, res) => {
   try {
     const {
       fullName, fatherName, address, state, pinCode, contactNumber,
       whatsappNumber, familyContact, email, passportNumber, dob,
-      passportIssue, passportExpiry, nationality, ecr, ecnr,
+      passportIssue, passportExpiry, nationality, passportType, // Changed from ecr, ecnr
       occupation, placeOfEmployment, lastExperience, lastSalary, InterviewStatus, ServiceCharge, MedicalCharge,
       expectedSalary, medicalReport, pccStatus, agentCode,
-      country, job, salary, filledBy, leadId,
+      filledBy, leadId,
     } = req.body;
-    if(!job){
-      return null;
-    }
+  
     const existingReg = await Registration.findOne({ leadId });
     if (existingReg) {
       return res.status(400).json({ message: 'Form already submitted for this lead.' });
@@ -36,8 +109,7 @@ exports.addRegistration = async (req, res) => {
       dateOfBirth: dob,
       passportExpiry,
       nationality,
-      ecr,
-      ecnr,
+      passportType, // Using the single passportType field
       occupation,
       placeOfEmployment,
       lastExperience,
@@ -49,16 +121,21 @@ exports.addRegistration = async (req, res) => {
       agentCode,
       Sign: signUrl,
       photo: photoUrl,
+      ServiceChargeByTeam: ServiceCharge,
       officeConfirmation: {
-        country,
-        work:job,
-        salary,
+        salary: expectedSalary,
         ServiceCharge,
         MedicalCharge
       },
       filledBy,
       leadId
     });
+
+    const updatedLead = await contact.findByIdAndUpdate(
+      leadId,
+      { isFormFilled: true },
+      { new: true }
+    );
 
     await newReg.save();
     res.status(201).json({ message: 'Registration created successfully', regNo: newReg.regNo });
@@ -67,6 +144,10 @@ exports.addRegistration = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+
 
 // PUT /api/registration/:id
 exports.updateRegistration = async (req, res) => {
@@ -153,6 +234,125 @@ exports.transferClientForms = async (req, res) => {
   }
 };
 
+
+
+
+exports.transferToPreVisa = async (req, res) => {
+  try {
+    const { clientFormId, staffHeadId, preVisaManagerId } = req.body;
+
+    if (!clientFormId || !staffHeadId || !preVisaManagerId) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const updatedForm = await Registration.findByIdAndUpdate(
+      clientFormId,
+      {
+        transferredToPreVisaManager: preVisaManagerId,
+        transferredForPreVisaBy: staffHeadId,
+      },
+      { new: true }
+    );
+
+    if (!updatedForm) {
+      return res.status(404).json({ success: false, message: "Client form not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Transferred to PreVisa Manager successfully",
+      data: updatedForm,
+    });
+  } catch (err) {
+    console.error("Error while transferring:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+  
+
+exports.transferToFinalVisa = async (req, res) => {
+  try {
+    const { clientFormId, preVisaManagerId ,finalVisaManagerId } = req.body;
+
+    if (!clientFormId || !finalVisaManagerId || !preVisaManagerId) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const updatedForm = await Registration.findByIdAndUpdate(
+      clientFormId,
+      {
+        transferredToFinalVisaManager: finalVisaManagerId,
+        transferredForFinalVisaBy: preVisaManagerId,
+      },
+      { new: true }
+    );
+
+    if (!updatedForm) {
+      return res.status(404).json({ success: false, message: "Client form not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Transferred to FinalVisa Manager successfully",
+      data: updatedForm,
+    });
+  } catch (err) {
+    console.error("Error while transferring:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+
+
+exports.getByFinalVisaManager = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = "", finalVisaManagerId } = req.query;
+
+    if (!finalVisaManagerId) {
+      return res.status(400).json({ message: "finalVisaManagerId is required" });
+    }
+
+    const query = {
+      transferredToFinalVisaManager: finalVisaManagerId,
+    };
+
+    if (search) {
+      query.$or = [
+        { contactNo: { $regex: search, $options: "i" } },
+        { whatsAppNo: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { fullName: { $regex: search, $options: "i" } },
+        { passportNumber: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [data, total] = await Promise.all([
+      Registration.find(query)
+        .populate("transferredToFinalVisaManager", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Registration.countDocuments(query),
+    ]);
+
+    res.json({
+      data,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
 //get all forms
 exports.getAllRegistrations = async (req, res) => {
   try {
@@ -163,6 +363,35 @@ exports.getAllRegistrations = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+
+// Get all client forms by Pre-Visa Officer
+exports.getByPreVisaOfficer = async (req, res) => {
+  try {
+    const { preVisaManagerId } = req.params;
+
+    if (!preVisaManagerId) {
+      return res.status(400).json({ success: false, message: "Officer ID is required" });
+    }
+
+    const forms = await Registration.find({
+      transferredToPreVisaManager: preVisaManagerId
+    })
+      .populate("transferredToPreVisaManager", "name email") // adjust fields as per your PreVisaOfficer schema
+      .populate("transferredForPreVisaBy", "name email")     // staff head details
+      .populate("transferredTo", "name email")               // staff head transfer
+      .populate("filledBy", "name email")                    // calling team details
+      .lean();
+
+    res.status(200).json({ success: true, data: forms });
+  } catch (error) {
+    console.error("Error fetching forms by Pre-Visa Officer:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 
 exports.getRegistrationsByTransferredTo = async (req, res) => {
   try {

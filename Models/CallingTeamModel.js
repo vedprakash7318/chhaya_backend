@@ -7,7 +7,7 @@ const CallingTeamSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   city: { type: String, required: true },
-   deleted: { type: Boolean, default: false },
+  deleted: { type: Boolean, default: false },
   addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'StaffHead', required: true },
   createdAt: { type: Date, default: Date.now }
 });

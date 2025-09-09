@@ -18,8 +18,8 @@ const ClientFormSchema = new mongoose.Schema({
   dateOfBirth: { type: String, required: true },
   passportExpiry: { type: String, required: true },
   nationality: { type: String, default: 'Indian' },
-  ecr: { type: Boolean, default: false },
-  ecnr: { type: Boolean, default: false },
+  passportType: { type: String, enum: ["ECR", "ECNR"], required: true },
+
 
   // Work Details
   occupation: String,
@@ -28,21 +28,23 @@ const ClientFormSchema = new mongoose.Schema({
   lastSalaryPostDetails: String,
   expectedSalary: String,
   medicalReport: String,
-  InterviewStatus:{
-    type:String,
+  InterviewStatus: {
+    type: String,
     enum: ['Pass', 'Fail', 'Applied', 'Not Applied'],
     default: 'Not Applied',
   },
-  InterviewAppliedBy:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'CallingTeam'
+  InterviewAppliedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CallingTeam',
+    default:null,
   },
   InterviewApplyDate: {
     type: Date,
   },
-  InterviewManager:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'InterviewManager',
+  InterviewManager: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'InterviewManager',
+    default:null,
   },
   pccStatus: String,
   photo: {
@@ -53,21 +55,31 @@ const ClientFormSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  ServiceChargeByTeam: String,
 
   // Office Section
   agentCode: {
-     type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'CallingTeam',
+    default:null,
   },
+
   officeConfirmation: {
-    country: {type: mongoose.Schema.Types.ObjectId,
-    ref: 'Country',},
-    work:  {type: mongoose.Schema.Types.ObjectId,
-    ref: 'Job',},
+    country: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Country',
+      default: null,
+    },
+    work: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Job',
+      default: null,
+    },
     salary: String,
     ServiceCharge: String,
     MedicalCharge: String,
   },
+
   transferredDate: {
     type: Date,
     default: Date.now()
@@ -75,22 +87,50 @@ const ClientFormSchema = new mongoose.Schema({
   transferredTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'StaffHead',
+    default:null,
   },
   transferredBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CallingTeam',
+    default:null,
   },
+  transferredToPreVisaManager: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PreVisaOfficer',
+    default:null,
+  },
+  transferredForPreVisaBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'StaffHead',
+    default:null,
+  },
+
+
+  transferredToFinalVisaManager: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FinalVisaOfficer',
+    default:null,
+  },
+  transferredForFinalVisaBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PreVisaOfficer',
+    default:null,
+  },
+
+
   regNo: { type: String, unique: true },
   filledBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CallingTeam',
+    default:null,
   },
   leadId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Lead',
+    default:null,
   },
-},{
-   timestamps: true 
+}, {
+  timestamps: true
 });
 
 // Auto-generate regNo without Counter

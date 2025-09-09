@@ -23,12 +23,43 @@ exports.addCallingTeam = async (req, res) => {
 // Get All
 exports.getCallingTeam = async (req, res) => {
   try {
-    const team = await CallingTeam.find({ deleted: false }).populate('addedBy');
-    res.status(200).json(team);
+    // Extract query params
+    const { page = 1, limit = 10, search = "" } = req.query;
+
+    // Search filter
+    let filter = {};
+    if (search) {
+      const regex = new RegExp(search, "i"); // case-insensitive
+      filter = {
+        $or: [
+          { name: regex },
+          { email: regex },
+          { phone: regex }
+        ]
+      };
+    }
+
+    // Total count (for pagination UI)
+    const total = await CallingTeam.countDocuments(filter);
+
+    // Paginated data
+    const team = await CallingTeam.find(filter)
+      .populate("addedBy")
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 }); // newest first
+
+    res.status(200).json({
+      data: team,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      totalRecords: total,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 //get Added BY 
@@ -39,7 +70,7 @@ exports.getCallingTeamByAddedBy = async (req, res) => {
     const callingTeams = await CallingTeam.find({
       addedBy: addedById,
       deleted: false,
-    }).select('_id name email phone');
+    })
 
     res.status(200).json(callingTeams);
   } catch (error) {
@@ -92,3 +123,7 @@ exports.loginCallingTeam = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+

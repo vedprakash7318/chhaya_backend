@@ -2,10 +2,27 @@
 const Country = require("../Models/CountryModel");
 
 // CREATE
+// exports.createCountry = async (req, res) => {
+//   try {
+//     const { countryName, countryAddedBy,countryAddedByType } = req.body;
+//     if(!countryName || !countryAddedBy || !countryAddedByType){
+//       return res.status(400).json({ success: false, message: "All fields are required" });
+//     }
+//     const country = new Country({ countryName, countryAddedBy,countryAddedByType });
+//     await country.save();
+//     res.status(201).json({ success: true, data: country });
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
 exports.createCountry = async (req, res) => {
   try {
-    const { countryName, addedBy } = req.body;
-    const country = new Country({ countryName, addedBy });
+    const { countryName, countryAddedBy} = req.body;
+    if (!countryName || !countryAddedBy) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+    const country = new Country({ countryName, countryAddedBy, });
     await country.save();
     res.status(201).json({ success: true, data: country });
   } catch (err) {
@@ -13,10 +30,11 @@ exports.createCountry = async (req, res) => {
   }
 };
 
+
 // READ (all countries)
 exports.getCountries = async (req, res) => {
   try {
-    const countries = await Country.find().sort({ createdAt: -1 });
+    const countries = await Country.find().populate('countryAddedBy').sort({ createdAt: -1 });
     res.json({ success: true, data: countries });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
